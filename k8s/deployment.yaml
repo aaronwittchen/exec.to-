@@ -14,6 +14,8 @@ spec:
       labels:
         app: exec-to
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: exec-to
           image: ghcr.io/aaronwittchen/exec-to:latest
