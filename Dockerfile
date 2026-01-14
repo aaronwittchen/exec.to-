@@ -18,9 +18,19 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN groupadd --system --gid 1001 nuxt && \
-    useradd --system --uid 1001 --gid nuxt nuxt
+# Copy built output and package files
+COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/package.json ./
 
+# Install production deps in server directory
+WORKDIR /app/.output/server
+RUN bun install --production --no-save 2>/dev/null || true
+
+WORKDIR /app
+
+RUN groupadd --system --gid 1001 nuxt && \
+    useradd --system --uid 1001 --gid nuxt nuxt && \
+    chown -R nuxt:nuxt /app
 # Copy built output
 COPY --from=builder --chown=nuxt:nuxt /app/.output ./.output
 
