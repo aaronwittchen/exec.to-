@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exec-to
+  labels:
+    app: exec-to
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exec-to
+  template:
+    metadata:
+      labels:
+        app: exec-to
+    spec:
+      containers:
+        - name: exec-to
+          image: ghcr.io/aaronwittchen/exec-to:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5

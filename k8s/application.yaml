@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: exec-to
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: exec-to=ghcr.io/aaronwittchen/exec-to
+    argocd-image-updater.argoproj.io/exec-to.update-strategy: latest
+    argocd-image-updater.argoproj.io/exec-to.pull-secret: pullsecret:exec-to/ghcr-secret
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/aaronwittchen/exec.to-.git
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: exec-to
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
