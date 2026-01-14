@@ -21,9 +21,12 @@ ENV NODE_ENV=production
 RUN groupadd --system --gid 1001 nuxt && \
     useradd --system --uid 1001 --gid nuxt nuxt
 
-# Copy built output and node_modules for external dependencies
+# Copy built output
 COPY --from=builder --chown=nuxt:nuxt /app/.output ./.output
+
+# Copy node_modules to both root and server directory for external deps
 COPY --from=deps --chown=nuxt:nuxt /app/node_modules ./node_modules
+COPY --from=deps --chown=nuxt:nuxt /app/node_modules ./.output/server/node_modules
 
 USER nuxt
 
