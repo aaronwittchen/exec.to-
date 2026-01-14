@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: exec-to
+  labels:
+    app: exec-to
+spec:
+  selector:
+    app: exec-to
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
