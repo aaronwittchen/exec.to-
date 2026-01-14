@@ -18,8 +18,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nuxt && \
-    adduser --system --uid 1001 nuxt
+RUN groupadd --system --gid 1001 nuxt && \
+    useradd --system --uid 1001 --gid nuxt nuxt
 
 COPY --from=builder --chown=nuxt:nuxt /app/.output ./.output
 
