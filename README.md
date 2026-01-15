@@ -1,8 +1,7 @@
 # Nuxt Minimal Starter
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=aaronwittchen_exec.to-&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=aaronwittchen_exec.to-)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/aaronwittchen/exec.to-?logo=github)](https://github.com/aaronwittchen/exec.to-/commits/main)
-[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-dark.svg)](https://sonarcloud.io/summary/new_code?id=aaronwittchen_exec.to-)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=aaronwittchen_exec.to-&metric=bugs)](https://sonarcloud.io/summary/new_code?id=aaronwittchen_exec.to-)
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=aaronwittchen_exec.to-)](https://sonarcloud.io/summary/new_code?id=aaronwittchen_exec.to-)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=aaronwittchen_exec.to-&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=aaronwittchen_exec.to-)

@@ -14,11 +14,12 @@ spec:
       labels:
         app: exec-to
     spec:
+      automountServiceAccountToken: false
       imagePullSecrets:
         - name: ghcr-secret
       containers:
         - name: exec-to
-          image: ghcr.io/aaronwittchen/exec-to:latest
+          image: ghcr.io/aaronwittchen/exec-to:v1.0.0
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -26,9 +27,11 @@ spec:
             requests:
               memory: "128Mi"
               cpu: "100m"
+              ephemeral-storage: "100Mi"
             limits:
               memory: "256Mi"
               cpu: "500m"
+              ephemeral-storage: "500Mi"
           livenessProbe:
             httpGet:
               path: /

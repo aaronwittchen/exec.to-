@@ -5,6 +5,7 @@ pipeline {
 apiVersion: v1
 kind: Pod
 spec:
+  serviceAccountName: jenkins-deployer
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
@@ -15,6 +16,12 @@ spec:
     volumeMounts:
     - name: kaniko-secret
       mountPath: /kaniko/.docker
+  - name: kubectl
+    image: gcr.io/cloud-builders/kubectl
+    command:
+    - sleep
+    args:
+    - "9999999"
   volumes:
   - name: kaniko-secret
     secret:
@@ -40,14 +47,24 @@ spec:
             steps {
                 container('kaniko') {
                     script {
-                        def imageTag = env.GIT_COMMIT?.take(7) ?: 'latest'
+                        env.IMAGE_TAG = env.GIT_COMMIT?.take(7) ?: 'latest'
                         sh """
                             /kaniko/executor \
                                 --context=dir://\${WORKSPACE} \
-                                --destination=${REGISTRY}/${IMAGE_NAME}:${imageTag} \
+                                --destination=${REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} \
                                 --destination=${REGISTRY}/${IMAGE_NAME}:latest
                         """
                     }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                container('kubectl') {
+                    sh """
+                        kubectl set image deployment/exec-to exec-to=${REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} -n exec-to
+                    """
                 }
             }
         }

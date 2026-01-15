@@ -24,3 +24,33 @@ roleRef:
   kind: Role
   name: jenkins-agent
   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins-deployer
+  namespace: jenkins
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jenkins-deployer
+  namespace: exec-to
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jenkins-deployer
+  namespace: exec-to
+subjects:
+- kind: ServiceAccount
+  name: jenkins-deployer
+  namespace: jenkins
+roleRef:
+  kind: Role
+  name: jenkins-deployer
+  apiGroup: rbac.authorization.k8s.io
