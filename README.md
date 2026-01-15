@@ -1,7 +1,6 @@
 # Nuxt Minimal Starter
 
-[![Build Status](https://jenkins.pinksalad.eu/buildStatus/icon?job=exec-to)](https://jenkins.pinksalad.eu/job/exec-to/)
-[![Build Status](https://jenkins.k8s.local/buildStatus/icon?job=exec-to)](https://jenkins.k8s.local/job/exec-to/)
+[![Build Status](https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins.pinksalad.eu%2Fjob%2Fexec-to&logo=jenkins&logoColor=white)](https://jenkins.pinksalad.eu/job/exec-to/)
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
