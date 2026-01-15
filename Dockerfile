@@ -24,11 +24,12 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy ONLY the Nitro output
+# Copy Nitro output
 COPY --from=builder /app/.output ./.output
 
-# Optional: package.json (not required unless you rely on it at runtime)
-# COPY --from=builder /app/package.json ./
+# Remove symlinked node_modules (Kaniko can't COPY over symlinks), then copy real deps
+RUN rm -rf ./.output/server/node_modules
+COPY --from=deps /app/node_modules ./.output/server/node_modules
 
 # Create non-root user
 RUN groupadd --system --gid 1001 nuxt && \

@@ -31,6 +31,10 @@ spec:
         IMAGE_NAME = 'aaronwittchen/exec-to'
     }
 
+    triggers {
+        pollSCM('H/2 * * * *')  // Check for changes every 2 minutes
+    }
+
     stages {
         stage('Build and Push') {
             steps {
