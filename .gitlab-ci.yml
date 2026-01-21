@@ -26,8 +26,7 @@ test:
   image: oven/bun:1
   script:
     - bun install --frozen-lockfile
-    - bun run test
-  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+    - bun run vitest --coverage.enabled=false
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
