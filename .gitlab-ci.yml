@@ -1,0 +1,100 @@
+stages:
+  - test
+  - build
+  - push
+  - update-manifests
+
+variables:
+  IMAGE_NAME: onionn/exec-to
+  GITOPS_REPO: git@gitlab.local:root/gitops-manifests.git
+
+# ------------------------------
+# Test Stage
+# ------------------------------
+lint:
+  stage: test
+  image: oven/bun:1
+  script:
+    - bun install --frozen-lockfile
+    - bun run lint
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+test:
+  stage: test
+  image: oven/bun:1
+  script:
+    - bun install --frozen-lockfile
+    - bun run test
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ------------------------------
+# Build Stage
+# ------------------------------
+build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+  script:
+    - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA -t $IMAGE_NAME:latest .
+    - docker save $IMAGE_NAME:$CI_COMMIT_SHORT_SHA > image.tar
+  artifacts:
+    paths:
+      - image.tar
+    expire_in: 1 hour
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ------------------------------
+# Push Stage
+# ------------------------------
+push:
+  stage: push
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+  script:
+    - docker load < image.tar
+    - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_NAME:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ------------------------------
+# Update GitOps Manifests
+# ------------------------------
+update-manifests:
+  stage: update-manifests
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git openssh-client yq
+    - mkdir -p ~/.ssh
+    - echo "$GITOPS_SSH_KEY" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan gitlab.local >> ~/.ssh/known_hosts 2>/dev/null
+    - git config --global user.email "ci@gitlab.local"
+    - git config --global user.name "GitLab CI"
+  script:
+    - git clone $GITOPS_REPO /tmp/gitops
+    - cd /tmp/gitops
+    - |
+      yq -i '.spec.template.spec.containers[0].image = "'$IMAGE_NAME:$CI_COMMIT_SHORT_SHA'"' \
+        apps/exec-to/base/deployment.yaml
+    - git add .
+    - git diff --cached --quiet || git commit -m "chore(exec-to): update image to $CI_COMMIT_SHORT_SHA"
+    - git push origin main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
