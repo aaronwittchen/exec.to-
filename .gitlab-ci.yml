@@ -90,10 +90,9 @@ update-manifests:
   script:
     - git clone $GITOPS_REPO /tmp/gitops
     - cd /tmp/gitops
-    - export NEW_IMAGE="$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
-    - yq -i ".spec.template.spec.containers[0].image = \"$NEW_IMAGE\"" apps/exec-to/base/deployment.yaml
+    - 'yq -i ".spec.template.spec.containers[0].image = \"${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}\"" apps/exec-to/base/deployment.yaml'
     - git add .
-    - git diff --cached --quiet || git commit -m "chore(exec-to): update image to $CI_COMMIT_SHORT_SHA"
+    - 'git diff --cached --quiet || git commit -m "chore(exec-to): update image to ${CI_COMMIT_SHORT_SHA}"'
     - git push origin main
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
