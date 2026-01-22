@@ -1,0 +1,35 @@
+stages:
+  - test
+  - build
+  - deploy
+
+include:
+  - component: gitlab.local/root/ci-components/security-scan@main
+  - component: gitlab.local/root/ci-components/docker-build@main
+    inputs:
+      image_name: onionn/exec-to
+  - component: gitlab.local/root/ci-components/gitops-update@main
+    inputs:
+      app_name: exec-to
+      image_name: onionn/exec-to
+
+# App-specific jobs
+lint:
+  stage: test
+  image: oven/bun:1
+  script:
+    - bun install --frozen-lockfile
+    - bun run lint
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+test:
+  stage: test
+  image: oven/bun:1
+  script:
+    - bun install --frozen-lockfile
+    - bun run vitest --coverage.enabled=false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
