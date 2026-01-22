@@ -1,15 +1,19 @@
 stages:
   - test
   - build
-  - update-manifests
+  - deploy
 
-variables:
-  IMAGE_NAME: onionn/exec-to
-  GITOPS_REPO: git@gitlab.local:root/gitops-manifests.git
+include:
+  - component: gitlab.local/root/ci-components/security-scan@main
+  - component: gitlab.local/root/ci-components/docker-build@main
+    inputs:
+      image_name: onionn/exec-to
+  - component: gitlab.local/root/ci-components/gitops-update@main
+    inputs:
+      app_name: exec-to
+      image_name: onionn/exec-to
 
-# ------------------------------
-# Test Stage
-# ------------------------------
+# App-specific jobs
 lint:
   stage: test
   image: oven/bun:1
@@ -28,47 +32,4 @@ test:
     - bun run vitest --coverage.enabled=false
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
-
-# ------------------------------
-# Build & Push Stage (Kaniko)
-# ------------------------------
-build:
-  stage: build
-  image:
-    name: gcr.io/kaniko-project/executor:v1.23.2-debug
-    entrypoint: [""]
-  script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$(printf "%s:%s" "${DOCKERHUB_USERNAME}" "${DOCKERHUB_TOKEN}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}"
-      --destination "${IMAGE_NAME}:latest"
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-
-# ------------------------------
-# Update GitOps Manifests
-# ------------------------------
-update-manifests:
-  stage: update-manifests
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache git openssh-client yq
-    - mkdir -p ~/.ssh
-    - echo "$GITOPS_SSH_KEY" | base64 -d > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan gitlab.local >> ~/.ssh/known_hosts 2>/dev/null
-    - git config --global user.email "ci@gitlab.local"
-    - git config --global user.name "GitLab CI"
-  script:
-    - git clone $GITOPS_REPO /tmp/gitops
-    - cd /tmp/gitops
-    - 'yq -i ".spec.template.spec.containers[0].image = \"${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}\"" apps/exec-to/base/deployment.yaml'
-    - git add .
-    - 'git diff --cached --quiet || git commit -m "chore(exec-to): update image to ${CI_COMMIT_SHORT_SHA}"'
-    - git push origin main
-  rules:
     - if: $CI_COMMIT_BRANCH == "main"
